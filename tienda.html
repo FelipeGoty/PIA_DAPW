@@ -1,10 +1,10 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
+      <link rel="stylesheet" href="estilos.css">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RULE 34 | Tienda de Celulares</title>
-    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
@@ -53,6 +53,59 @@
         </div>
     </section>
 
+    <!-- SECCIÓN DE OFERTAS -->
+    <section id="ofertas" class="ofertas-seccion">
+        <div class="ofertas-contenedor">
+            <div class="ofertas-header">
+                <span class="badge-oferta">🔥 OFERTAS DE LA SEMANA</span>
+                <h2>Descuentos Especiales</h2>
+                <p>Aprovecha precios rebajados por tiempo limitado en modelos seleccionados.</p>
+            </div>
+
+            <div class="productos-grid ofertas-grid">
+                <article class="tarjeta-producto tarjeta-oferta" data-marca="apple">
+                    <span class="etiqueta-descuento">-15% OFF</span>
+                    <img src="151.avif" alt="iPhone 15 Oferta" class="imagen-producto" id="img-oferta-1">
+                    <h3>iPhone 15 (Oferta)</h3>
+                    <p class="especificaciones">128GB | Envío Gratis</p>
+                    <p class="precio-anterior">$15,999 MXN</p>
+                    <p class="precio">$13,599 MXN</p>
+                    <button class="btn-agregar" data-id="101" data-nombre="iPhone 15 (Oferta)" data-precio="13599">Agregar Oferta</button>
+                </article>
+
+                <article class="tarjeta-producto tarjeta-oferta" data-marca="samsung">
+                    <span class="etiqueta-descuento">-18% OFF</span>
+                    <img src="24u2.avif" alt="Samsung Galaxy S24 Ultra Oferta" class="imagen-producto" id="img-oferta-2">
+                    <h3>Galaxy S24 Ultra (Oferta)</h3>
+                    <p class="especificaciones">512GB | S-Pen Incluido</p>
+                    <p class="precio-anterior">$24,499 MXN</p>
+                    <p class="precio">$19,999 MXN</p>
+                    <button class="btn-agregar" data-id="102" data-nombre="Galaxy S24 Ultra (Oferta)" data-precio="19999">Agregar Oferta</button>
+                </article>
+
+                <article class="tarjeta-producto tarjeta-oferta" data-marca="xiaomi">
+                    <span class="etiqueta-descuento">-20% OFF</span>
+                    <img src="sp27.avif" alt="Redmi Note 13 Pro+ Oferta" class="imagen-producto" id="img-oferta-3">
+                    <h3>Redmi Note 13 Pro+ (Oferta)</h3>
+                    <p class="especificaciones">512GB | Carga 120W</p>
+                    <p class="precio-anterior">$8,499 MXN</p>
+                    <p class="precio">$6,799 MXN</p>
+                    <button class="btn-agregar" data-id="103" data-nombre="Redmi Note 13 Pro+ (Oferta)" data-precio="6799">Agregar Oferta</button>
+                </article>
+
+                <article class="tarjeta-producto tarjeta-oferta" data-marca="motorola">
+                    <span class="etiqueta-descuento">-22% OFF</span>
+                    <img src="sp47.webp" alt="Motorola Edge 50 Pro Oferta" class="imagen-producto" id="img-oferta-4">
+                    <h3>Motorola Edge 50 Pro (Oferta)</h3>
+                    <p class="especificaciones">256GB | Cargador 125W</p>
+                    <p class="precio-anterior">$10,499 MXN</p>
+                    <p class="precio">$8,199 MXN</p>
+                    <button class="btn-agregar" data-id="104" data-nombre="Motorola Edge 50 Pro (Oferta)" data-precio="8199">Agregar Oferta</button>
+                </article>
+            </div>
+        </div>
+    </section>
+
     <!-- FILTROS Y BUSCADOR -->
     <section class="filtros-seccion">
         <input type="text" id="buscador" placeholder="Buscar celular por modelo...">
@@ -63,6 +116,12 @@
             <option value="samsung">Samsung</option>
             <option value="xiaomi">Xiaomi</option>
             <option value="motorola">Motorola</option>
+        </select>
+
+        <select id="ordenar-precio">
+            <option value="defecto">Ordenar por: Destacados</option>
+            <option value="menor-mayor">Precio: Menor a Mayor</option>
+            <option value="mayor-menor">Precio: Mayor a Menor</option>
         </select>
     </section>
 
@@ -930,6 +989,7 @@
             </article>
 
         </div>
+        <p id="sin-resultados" class="sin-resultados oculto">No se encontraron celulares que coincidan con tu búsqueda.</p>
     </main>
 
     <!-- MODAL / PANEL DEL CARRITO DE COMPRAS -->
