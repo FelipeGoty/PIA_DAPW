@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carrito y pago | RULE 34 Store Phones</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            padding: 2rem 1rem;
+            background: #f4f6fb;
+            color: #111827;
+            font-family: "Segoe UI", system-ui, sans-serif;
+        }
+        main {
+            width: min(760px, 100%);
+            margin: 0 auto;
+            padding: 2rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 16px;
+            background: #fff;
+            box-shadow: 0 12px 28px rgba(17, 24, 39, 0.08);
+        }
+        h1 { margin-top: 0; }
+        .volver { color: #1d4ed8; font-weight: 600; }
+        .items { padding: 0; list-style: none; }
+        .items li {
+            display: flex;
+            justify-content: space-between;
+            gap: 1rem;
+            padding: 0.8rem 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        fieldset {
+            display: grid;
+            gap: 0.8rem;
+            margin: 1.5rem 0;
+            padding: 1rem;
+            border: 1px solid #d1d5db;
+            border-radius: 10px;
+        }
+        legend { padding: 0 0.35rem; font-weight: 700; }
+        label { display: flex; align-items: center; gap: 0.6rem; }
+        button {
+            width: 100%;
+            padding: 0.9rem;
+            border: 0;
+            border-radius: 9px;
+            background: #2563eb;
+            color: #fff;
+            font: inherit;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        button:hover { background: #1d4ed8; }
+        .aviso, .mensaje {
+            padding: 0.9rem;
+            border-radius: 8px;
+            background: #eff6ff;
+            color: #1e3a8a;
+        }
+        .error { background: #fef2f2; color: #991b1b; }
+        .confirmacion { background: #ecfdf5; color: #065f46; }
+        .total { text-align: right; font-size: 1.25rem; font-weight: 800; }
+        [hidden] { display: none !important; }
+        @media (max-width: 520px) {
+            main { padding: 1.25rem; }
+            .items li { flex-direction: column; gap: 0.2rem; }
+        }
+    </style>
+</head>
+<body>
+    <main>
+        <a class="volver" href="PIA.html">← Volver a la tienda</a>
+        <h1>Tu carrito</h1>
+        <p id="mensaje" class="mensaje" role="status" aria-live="polite" hidden></p>
+
+        <section id="resumen-carrito" hidden>
+            <ul id="items-carrito" class="items"></ul>
+            <p class="total">Total: $<span id="total-carrito">0</span> MXN</p>
+        </section>
+
+        <section id="opciones-pago" hidden>
+            
+            <fieldset id="metodos-pago">
+                <legend>Elige tu método de pago</legend>
+                <label><input type="radio" name="metodo" value="oxxo"> Pagar en OXXO</label>
+                <label><input type="radio" name="metodo" value="walmart"> Pagar en Walmart</label>
+                <label><input type="radio" name="metodo" value="seven_eleven"> Pagar en 7-Eleven</label>
+                <label><input type="radio" name="metodo" value="tarjeta"> Pagar con tarjeta </label>
+            </fieldset>
+            <button id="continuar-pago" type="button">Continuar</button>
+        </section>
+    </main>
+    <script src="inventario.js"></script>
+    <script src="carrito.js"></script>
+</body>
+</html>

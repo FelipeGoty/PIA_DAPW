@@ -1,0 +1,1140 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Atrapa al Pollo - Pixel Art</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Fuente Pixel Art Retro -->
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+        }
+
+        body {
+            font-family: 'Press Start 2P', monospace;
+            background-color: #0f172a;
+            background-image:
+                linear-gradient(to right, rgba(30, 41, 59, 0.5) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(30, 41, 59, 0.5) 1px, transparent 1px);
+            background-size: 24px 24px;
+            color: #f8fafc;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow-x: hidden;
+        }
+
+        /* Renderizado nítido de píxeles sin suavizado borroso */
+        canvas {
+            image-rendering: -moz-crisp-edges;
+            image-rendering: -webkit-crisp-edges;
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+        }
+
+        /* Marco estilo ventana arcade de 16 bits */
+        .pixel-box {
+            border: 4px solid #000000;
+            box-shadow:
+                inset 0 0 0 3px #475569,
+                0 8px 0 #000000;
+        }
+
+        /* Botones de cruceta pixelados */
+        .dpad-btn {
+            background-color: #334155;
+            border: 4px solid #000000;
+            box-shadow:
+                inset 0 3px 0 #64748b,
+                0 5px 0 #000000;
+            transition: transform 0.05s ease, box-shadow 0.05s ease, background-color 0.1s;
+        }
+
+        .dpad-btn:active, .dpad-btn.pressed {
+            transform: translateY(4px);
+            box-shadow:
+                inset 0 2px 0 #475569,
+                0 1px 0 #000000;
+            background-color: #7e22ce;
+        }
+
+        @keyframes pulseGlow {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.65; }
+        }
+
+        .animate-blink {
+            animation: pulseGlow 1.2s infinite;
+        }
+    </style>
+</head>
+<body class="p-3 sm:p-5">
+
+    <!-- Contenedor Principal Centrado -->
+    <main class="w-full max-w-[390px] flex flex-col items-center">
+
+        <!-- Título Retro -->
+        <header class="text-center mb-3">
+            <h1 class="text-base sm:text-lg text-amber-400 tracking-wider drop-shadow-[3px_3px_0_#000]">
+                ATRAPA AL POLLO
+            </h1>
+        </header>
+
+        <!-- Barra de estado HUD superior -->
+        <div class="w-full flex justify-between items-center bg-[#1e293b] border-4 border-black px-3 py-2.5 mb-3 text-[9px] shadow-[0_4px_0_#000]">
+            <div>
+                <span class="text-slate-400">PASOS:</span>
+                <span id="movesDisplay" class="text-emerald-400">00</span>
+            </div>
+
+            <div id="statusBadge" class="text-[8px] text-amber-300">
+                NORMAL
+            </div>
+
+            <div class="flex items-center gap-3">
+                <button id="soundToggleBtn" onclick="toggleSound()" title="Activar/Desactivar sonido" class="text-slate-200 hover:text-amber-300 cursor-pointer text-[9px]">
+                    SON:ON
+                </button>
+                <button onclick="startGame()" class="text-purple-300 hover:text-purple-200 underline cursor-pointer text-[8px]">
+                    REINICIAR
+                </button>
+            </div>
+        </div>
+
+        <!-- Tablero Pixel Art del Juego -->
+        <div class="relative w-full aspect-square bg-[#1a2e1a] pixel-box overflow-hidden">
+            <canvas id="gameCanvas" class="w-full h-full block"></canvas>
+
+            <!-- Banner discreto cuando se activa el Código Konami -->
+            <div id="konamiBanner" class="hidden absolute top-2 left-1/2 -translate-x-1/2 bg-purple-900/95 border-2 border-amber-400 px-2.5 py-1 text-[7px] text-amber-300 whitespace-nowrap z-10 shadow-[0_3px_0_#000]">
+                ★ POLLO HIPNOTIZADO ★
+            </div>
+
+            <!-- Pantalla de Inicio -->
+            <div id="startOverlay" class="absolute inset-0 bg-[#0f172a]/90 flex flex-col items-center justify-center p-5 text-center z-20">
+                <div class="mb-4 text-amber-400 text-xs sm:text-sm leading-relaxed drop-shadow-[2px_2px_0_#000]">
+                    ¡EL POLLO SE ESCAPA!
+                </div>
+                <p class="text-[8px] text-slate-300 leading-5 mb-5 max-w-[270px]">
+                    Cada paso que des, el pollo huirá por el patio. Usa los bloques para acorralarlo y atraparlo.
+                </p>
+                <button onclick="startGame()" class="bg-purple-700 hover:bg-purple-600 text-white border-4 border-black px-5 py-3 text-[10px] shadow-[inset_0_3px_0_#a855f7,0_5px_0_#000] active:translate-y-1 cursor-pointer animate-blink">
+                    ▶ JUGAR
+                </button>
+            </div>
+
+            <!-- Pantalla de Victoria -->
+            <div id="victoryOverlay" class="hidden absolute inset-0 bg-[#0f172a] flex flex-col justify-between z-20 overflow-hidden">
+                <!-- Escena Ilustrada Pixel Art (160x104 nativo escalado nítidamente) -->
+                <div class="relative w-full flex-1 bg-[#291d18] border-b-4 border-black overflow-hidden">
+                    <canvas id="victoryCanvas" width="160" height="104" class="w-full h-full block object-cover"></canvas>
+                    
+                    <!-- Insignia superior con pasos -->
+                    <div class="absolute top-1.5 right-1.5 bg-[#0f172a]/90 border-2 border-amber-400 px-2 py-0.5 text-[7px] text-amber-300 shadow-[0_2px_0_#000]">
+                        PASOS: <span id="finalMovesText" class="text-white">0</span>
+                    </div>
+                </div>
+
+                <!-- Cuadro de Diálogo Estilo RPG Retro -->
+                <div class="bg-[#1e293b] p-2.5 sm:p-3 flex flex-col justify-between gap-2 shadow-[inset_0_2px_0_#475569]">
+                    <div class="bg-[#0f172a] border-2 border-slate-500 p-2 text-left shadow-[inset_0_2px_0_#020617]">
+                        <p class="text-[7.5px] sm:text-[8.5px] text-amber-300 leading-relaxed mb-1.5">
+                            "¡YA ATRAPÉ AL POLLO, YA NO HACE HAMBRE!"
+                        </p>
+                        <p class="text-[7.5px] sm:text-[8.5px] text-emerald-400 leading-relaxed">
+                            "Lo quiero mucho profe Román, póngame 10"
+                        </p>
+                    </div>
+
+                    <button onclick="startGame()" class="w-full bg-purple-700 hover:bg-purple-600 text-white border-2 border-black py-2 text-[8.5px] shadow-[inset_0_2px_0_#a855f7,0_3px_0_#000] active:translate-y-0.5 cursor-pointer">
+                        ↻ VOLVER A JUGAR
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cruceta Direccional Minimalista Pixelada (D-Pad sin botones A/B) -->
+        <div class="mt-5 flex flex-col items-center">
+            <div class="grid grid-cols-3 gap-2 w-[156px] h-[156px]">
+                <div></div>
+                <button id="btn-up" aria-label="Arriba" class="dpad-btn flex items-center justify-center text-white text-xs rounded-sm cursor-pointer">
+                    ▲
+                </button>
+                <div></div>
+
+                <button id="btn-left" aria-label="Izquierda" class="dpad-btn flex items-center justify-center text-white text-xs rounded-sm cursor-pointer">
+                    ◀
+                </button>
+                <div class="bg-[#1e293b] border-4 border-black flex items-center justify-center">
+                    <div class="w-2 h-2 bg-slate-600"></div>
+                </div>
+                <button id="btn-right" aria-label="Derecha" class="dpad-btn flex items-center justify-center text-white text-xs rounded-sm cursor-pointer">
+                    ▶
+                </button>
+
+                <div></div>
+                <button id="btn-down" aria-label="Abajo" class="dpad-btn flex items-center justify-center text-white text-xs rounded-sm cursor-pointer">
+                    ▼
+                </button>
+                <div></div>
+            </div>
+
+            <p class="mt-3 text-[7px] text-slate-400 text-center">
+                USA FLECHAS / WASD O LA CRUCETA
+            </p>
+        </div>
+    </main>
+
+    <script>
+        // ==========================================
+        // CONFIGURACIÓN DEL TABLERO PIXEL ART
+        // ==========================================
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        const GRID_SIZE = 13;      // Cuadrícula de 13x13 celdas
+        const TILE_SIZE = 24;      // Cada celda mide 24x24 píxeles nativos
+        const CANVAS_RES = GRID_SIZE * TILE_SIZE; // 312x312 píxeles
+
+        canvas.width = CANVAS_RES;
+        canvas.height = CANVAS_RES;
+
+        // Elementos del DOM
+        const movesDisplay = document.getElementById('movesDisplay');
+        const statusBadge = document.getElementById('statusBadge');
+        const konamiBanner = document.getElementById('konamiBanner');
+        const startOverlay = document.getElementById('startOverlay');
+        const victoryOverlay = document.getElementById('victoryOverlay');
+        const finalMovesText = document.getElementById('finalMovesText');
+        const soundToggleBtn = document.getElementById('soundToggleBtn');
+        const victoryCanvas = document.getElementById('victoryCanvas');
+        const vCtx = victoryCanvas.getContext('2d');
+        let gameState = 'START'; // 'START', 'PLAYING', 'VICTORY'
+        let moves = 0;
+        let obstacles = [];
+        let player = { x: 2, y: 6, dir: 1 };
+        let chicken = { x: 10, y: 6, dir: -1 };
+        let animFrame = 0;
+
+        // Código Konami Direccional: ↑ ↑ ↓ ↓ ← → ← → ← →
+        const KONAMI_SEQUENCE = [
+            'UP', 'UP', 'DOWN', 'DOWN',
+            'LEFT', 'RIGHT', 'LEFT', 'RIGHT', 'LEFT', 'RIGHT'
+        ];
+        let konamiProgress = [];
+        let konamiActive = false;
+
+        // ==========================================
+        // SINTETIZADOR DE AUDIO RETRO 8-BITS
+        // ==========================================
+        let audioCtx = null;
+        let soundEnabled = true;
+
+        function initAudio() {
+            if (!audioCtx) {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                if (AudioContext) {
+                    audioCtx = new AudioContext();
+                }
+            }
+            if (audioCtx && audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            soundToggleBtn.textContent = soundEnabled ? 'SON:ON' : 'SON:OFF';
+            soundToggleBtn.className = soundEnabled
+                ? 'text-slate-200 hover:text-amber-300 cursor-pointer text-[9px]'
+                : 'text-slate-500 hover:text-slate-300 cursor-pointer text-[9px]';
+            if (soundEnabled) {
+                initAudio();
+                playTone(523.25, 'square', 0.06, 0.05);
+            }
+        }
+
+        function playTone(freq, type = 'square', duration = 0.08, volume = 0.07) {
+            if (!soundEnabled || !audioCtx) return;
+            try {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+
+                gain.gain.setValueAtTime(volume, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + duration);
+            } catch (e) {
+                // Ignorar si el navegador bloquea el audio antes de interacción
+            }
+        }
+
+        function playStepSound() {
+            playTone(196, 'triangle', 0.05, 0.08);
+        }
+
+        function playChickenCluck() {
+            playTone(620, 'square', 0.04, 0.04);
+            setTimeout(() => playTone(480, 'square', 0.05, 0.04), 45);
+        }
+
+        function playKonamiSound() {
+            const notes = [523.25, 659.25, 783.99, 1046.50];
+            notes.forEach((n, idx) => {
+                setTimeout(() => playTone(n, 'square', 0.1, 0.08), idx * 75);
+            });
+        }
+
+        function playVictorySound() {
+            const melody = [523.25, 659.25, 783.99, 1046.50, 783.99, 1046.50];
+            const times = [0, 100, 200, 300, 440, 560];
+            melody.forEach((n, idx) => {
+                setTimeout(() => playTone(n, 'square', 0.15, 0.09), times[idx]);
+            });
+        }
+
+        // ==========================================
+        // GENERACIÓN DE MAPA Y OBSTÁCULOS
+        // ==========================================
+        function isObstacle(x, y) {
+            return obstacles.some(obs => obs.x === x && obs.y === y);
+        }
+
+        function isInsideGrid(x, y) {
+            return x >= 0 && x < GRID_SIZE && y >= 0 && y < GRID_SIZE;
+        }
+
+        function generateLevel() {
+            obstacles = [];
+            player = { x: 2, y: 6, dir: 1 };
+            chicken = { x: 10, y: 6, dir: -1 };
+
+            // Patrón base de bloques estratégicos en el patio
+            const baseBlocks = [
+                { x: 4, y: 3 }, { x: 8, y: 3 },
+                { x: 4, y: 9 }, { x: 8, y: 9 },
+                { x: 6, y: 5 }, { x: 6, y: 7 },
+                { x: 3, y: 6 }, { x: 9, y: 6 }
+            ];
+
+            baseBlocks.forEach(b => obstacles.push(b));
+
+            // Añadir 6 bloques aleatorios adicionales sin encerrar celdas
+            let extra = 0;
+            let attempts = 0;
+            while (extra < 6 && attempts < 100) {
+                attempts++;
+                const rx = Math.floor(Math.random() * (GRID_SIZE - 2)) + 1;
+                const ry = Math.floor(Math.random() * (GRID_SIZE - 2)) + 1;
+
+                if ((rx === player.x && ry === player.y) || (rx === chicken.x && ry === chicken.y)) continue;
+                if (Math.abs(rx - player.x) + Math.abs(ry - player.y) <= 1) continue;
+                if (Math.abs(rx - chicken.x) + Math.abs(ry - chicken.y) <= 1) continue;
+                if (isObstacle(rx, ry)) continue;
+
+                obstacles.push({ x: rx, y: ry });
+
+                // Verificar que siga existiendo camino válido y ninguna celda quede atrapada
+                if (getShortestPathDistance(player.x, player.y, chicken.x, chicken.y) === Infinity || hasDeadTrap()) {
+                    obstacles.pop();
+                } else {
+                    extra++;
+                }
+            }
+        }
+
+        // Evita crear celdas con 0 salidas
+        function hasDeadTrap() {
+            for (let y = 0; y < GRID_SIZE; y++) {
+                for (let x = 0; x < GRID_SIZE; x++) {
+                    if (!isObstacle(x, y)) {
+                        if (getValidNeighbors(x, y).length === 0) return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        function getValidNeighbors(x, y) {
+            const dirs = [
+                { dx: 0, dy: -1 },
+                { dx: 0, dy: 1 },
+                { dx: -1, dy: 0 },
+                { dx: 1, dy: 0 }
+            ];
+            const valid = [];
+            for (const d of dirs) {
+                const nx = x + d.dx;
+                const ny = y + d.dy;
+                if (isInsideGrid(nx, ny) && !isObstacle(nx, ny)) {
+                    valid.push({ x: nx, y: ny });
+                }
+            }
+            return valid;
+        }
+
+        // Búsqueda en Anchura (BFS) para medir distancia real rodeando obstáculos
+        function getShortestPathDistance(sx, sy, tx, ty) {
+            if (sx === tx && sy === ty) return 0;
+            const visited = Array.from({ length: GRID_SIZE }, () => Array(GRID_SIZE).fill(false));
+            const queue = [{ x: sx, y: sy, dist: 0 }];
+            visited[sy][sx] = true;
+
+            while (queue.length > 0) {
+                const curr = queue.shift();
+                const neighbors = getValidNeighbors(curr.x, curr.y);
+                for (const n of neighbors) {
+                    if (n.x === tx && n.y === ty) return curr.dist + 1;
+                    if (!visited[n.y][n.x]) {
+                        visited[n.y][n.x] = true;
+                        queue.push({ x: n.x, y: n.y, dist: curr.dist + 1 });
+                    }
+                }
+            }
+            return Infinity;
+        }
+
+        // ==========================================
+        // FLUJO DEL JUEGO Y ALGORITMO DEL POLLO
+        // ==========================================
+        function startGame() {
+            initAudio();
+            playTone(587.33, 'square', 0.08);
+            moves = 0;
+            konamiActive = false;
+            konamiProgress = [];
+            gameState = 'PLAYING';
+
+            startOverlay.classList.add('hidden');
+            victoryOverlay.classList.add('hidden');
+            konamiBanner.classList.add('hidden');
+            statusBadge.textContent = 'NORMAL';
+            statusBadge.className = 'text-[8px] text-amber-300';
+
+            generateLevel();
+            updateHUD();
+        }
+
+        function updateHUD() {
+            movesDisplay.textContent = String(moves).padStart(2, '0');
+        }
+
+        function checkKonamiInput(direction) {
+            if (gameState !== 'PLAYING' || konamiActive) return;
+
+            konamiProgress.push(direction);
+            if (konamiProgress.length > KONAMI_SEQUENCE.length) {
+                konamiProgress.shift();
+            }
+
+            if (konamiProgress.length === KONAMI_SEQUENCE.length) {
+                const matched = konamiProgress.every((val, idx) => val === KONAMI_SEQUENCE[idx]);
+                if (matched) {
+                    konamiActive = true;
+                    konamiBanner.classList.remove('hidden');
+                    statusBadge.textContent = 'KONAMI';
+                    statusBadge.className = 'text-[8px] text-purple-400 animate-blink';
+                    playKonamiSound();
+                }
+            }
+        }
+
+        function handlePlayerMove(direction) {
+            initAudio();
+            if (gameState !== 'PLAYING') return;
+
+            checkKonamiInput(direction);
+
+            let dx = 0;
+            let dy = 0;
+            if (direction === 'UP') dy = -1;
+            if (direction === 'DOWN') dy = 1;
+            if (direction === 'LEFT') { dx = -1; player.dir = -1; }
+            if (direction === 'RIGHT') { dx = 1; player.dir = 1; }
+
+            const nextX = player.x + dx;
+            const nextY = player.y + dy;
+
+            // Validar que no choque contra bordes ni bloques
+            if (!isInsideGrid(nextX, nextY) || isObstacle(nextX, nextY)) {
+                playTone(110, 'sawtooth', 0.06, 0.05);
+                return;
+            }
+
+            player.x = nextX;
+            player.y = nextY;
+            moves++;
+            updateHUD();
+            playStepSound();
+
+            // ¿Atrapó al pollo directamente?
+            if (player.x === chicken.x && player.y === chicken.y) {
+                triggerVictory();
+                return;
+            }
+
+            // Turno del pollo
+            moveChicken();
+
+            // ¿El pollo caminó hacia el jugador (por ejemplo, bajo efecto Konami)?
+            if (player.x === chicken.x && player.y === chicken.y) {
+                triggerVictory();
+                return;
+            }
+
+            playChickenCluck();
+        }
+
+        /**
+         * Algoritmo de evasión equilibrado:
+         * - Usa BFS para alejarse del jugador y busca celdas con buenas salidas.
+         * - Cada 6 pasos se distrae picoteando el suelo (da oportunidad justa).
+         * - Tiene ~28% de probabilidad de tomar la segunda mejor ruta.
+         * - Si se activa el Código Konami, camina directo hacia el jugador.
+         */
+        function moveChicken() {
+            const candidates = getValidNeighbors(chicken.x, chicken.y);
+            if (candidates.length === 0) return;
+
+            // Modo Konami Activado: el pollo viene hacia el jugador
+            if (konamiActive) {
+                let bestApproach = candidates[0];
+                let minDist = Infinity;
+
+                for (const move of candidates) {
+                    const dist = getShortestPathDistance(move.x, move.y, player.x, player.y);
+                    if (dist < minDist) {
+                        minDist = dist;
+                        bestApproach = move;
+                    }
+                }
+
+                if (bestApproach.x !== chicken.x) {
+                    chicken.dir = bestApproach.x > chicken.x ? 1 : -1;
+                }
+                chicken.x = bestApproach.x;
+                chicken.y = bestApproach.y;
+                return;
+            }
+
+            // Cada 6 pasos el pollo se distrae picoteando el suelo
+            if (moves % 6 === 0) {
+                chicken.dir *= -1;
+                return;
+            }
+
+            let scoredMoves = [];
+
+            for (const move of candidates) {
+                if (move.x === player.x && move.y === player.y) continue;
+
+                const distFromPlayer = getShortestPathDistance(move.x, move.y, player.x, player.y);
+                const escapeRoutes = getValidNeighbors(move.x, move.y).filter(
+                    n => !(n.x === player.x && n.y === player.y)
+                );
+                const freedomCount = escapeRoutes.length;
+
+                const cornerPenalty = freedomCount <= 1 ? -3.0 : (freedomCount === 2 ? -0.5 : 0);
+                const score = (distFromPlayer * 2.0) + (freedomCount * 0.9) + cornerPenalty;
+
+                scoredMoves.push({ move, score });
+            }
+
+            if (scoredMoves.length > 0) {
+                scoredMoves.sort((a, b) => b.score - a.score);
+
+                let chosenObj = scoredMoves[0];
+
+                // ~28% de probabilidad de cometer un pequeño error táctico
+                if (scoredMoves.length > 1 && Math.random() < 0.28) {
+                    chosenObj = scoredMoves[1];
+                }
+
+                const chosen = chosenObj.move;
+                if (chosen.x !== chicken.x) {
+                    chicken.dir = chosen.x > chicken.x ? 1 : -1;
+                }
+                chicken.x = chosen.x;
+                chicken.y = chosen.y;
+            }
+        }
+
+        function triggerVictory() {
+            gameState = 'VICTORY';
+            finalMovesText.textContent = moves;
+            victoryOverlay.classList.remove('hidden');
+            konamiBanner.classList.add('hidden');
+            playVictorySound();
+        }
+
+        // ==========================================
+        // RENDERIZADO PIXEL ART EN CANVAS
+        // ==========================================
+        function drawPixelSprite(spriteRows, palette, gx, gy, flipX = false, bobY = 0) {
+            const px = gx * TILE_SIZE;
+            const py = gy * TILE_SIZE + bobY;
+            const pixelScale = 2; // Cada píxel del sprite de 12x12 equivale a 2x2 en canvas
+
+            for (let row = 0; row < spriteRows.length; row++) {
+                const line = spriteRows[row];
+                for (let col = 0; col < line.length; col++) {
+                    const char = line[col];
+                    if (char === '.') continue;
+                    const color = palette[char];
+                    if (!color) continue;
+
+                    const drawCol = flipX ? (line.length - 1 - col) : col;
+                    ctx.fillStyle = color;
+                    ctx.fillRect(
+                        px + drawCol * pixelScale,
+                        py + row * pixelScale,
+                        pixelScale,
+                        pixelScale
+                    );
+                }
+            }
+        }
+
+        // Patio cuadriculado con césped retro
+        function drawBoard() {
+            for (let y = 0; y < GRID_SIZE; y++) {
+                for (let x = 0; x < GRID_SIZE; x++) {
+                    const isEven = (x + y) % 2 === 0;
+                    ctx.fillStyle = isEven ? '#274e2b' : '#214425';
+                    ctx.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+
+                    // Detalle sutil de briznas de césped pixeladas
+                    if ((x * 7 + y * 13) % 5 === 0) {
+                        ctx.fillStyle = '#326337';
+                        ctx.fillRect(x * TILE_SIZE + 6, y * TILE_SIZE + 8, 2, 4);
+                        ctx.fillRect(x * TILE_SIZE + 10, y * TILE_SIZE + 10, 2, 2);
+                    }
+                }
+            }
+        }
+
+        // Bloques retro estilo ladrillo/piedra arcade
+        function drawObstacles() {
+            for (const obs of obstacles) {
+                const px = obs.x * TILE_SIZE;
+                const py = obs.y * TILE_SIZE;
+
+                // Sombra proyectada
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
+                ctx.fillRect(px + 2, py + 4, TILE_SIZE - 2, TILE_SIZE - 2);
+
+                // Cuerpo del bloque
+                ctx.fillStyle = '#64748b';
+                ctx.fillRect(px + 1, py + 1, TILE_SIZE - 2, TILE_SIZE - 2);
+
+                // Borde superior iluminado
+                ctx.fillStyle = '#94a3b8';
+                ctx.fillRect(px + 1, py + 1, TILE_SIZE - 2, 3);
+                ctx.fillRect(px + 1, py + 1, 3, TILE_SIZE - 2);
+
+                // Borde inferior oscuro
+                ctx.fillStyle = '#334155';
+                ctx.fillRect(px + 1, py + TILE_SIZE - 4, TILE_SIZE - 2, 3);
+                ctx.fillRect(px + TILE_SIZE - 4, py + 1, 3, TILE_SIZE - 2);
+
+                // Remaches en las esquinas
+                ctx.fillStyle = '#1e293b';
+                ctx.fillRect(px + 5, py + 5, 2, 2);
+                ctx.fillRect(px + TILE_SIZE - 7, py + 5, 2, 2);
+                ctx.fillRect(px + 5, py + TILE_SIZE - 7, 2, 2);
+                ctx.fillRect(px + TILE_SIZE - 7, py + TILE_SIZE - 7, 2, 2);
+            }
+        }
+
+        // Personaje: Hombre robusto rapado con audífonos negros, bigote, sudadera morada y chaleco acolchado oscuro
+        function drawPlayerMan(gx, gy) {
+            const px = gx * TILE_SIZE;
+            const py = gy * TILE_SIZE;
+            const bobY = Math.sin(animFrame * 0.14) > 0.4 ? -1 : 0;
+
+            const palette = {
+                'K': '#090d16', // Contorno oscuro
+                'H': '#1e293b', // Audífonos de diadema negros/gris muy oscuro
+                'G': '#e5b893', // Cabeza rapada (piel cálida con ligero tono rapado)
+                'S': '#ebb992', // Rostro piel cálida
+                'M': '#27272a', // Bigote fino y perilla
+                'P': '#4c1d95', // Sudadera morada intensa
+                'L': '#6d28d9', // Luz sudadera morada
+                'V': '#334155', // Chaleco acolchado gris oscuro/negro
+                'D': '#1e293b', // Sombra/acolchado del chaleco
+                'T': '#18181b', // Pantalón oscuro
+                'B': '#020617'  // Calzado
+            };
+
+            const sprite = [
+                '...HHHHHH...',
+                '..HGGGGGGH..',
+                '.HHGSSSSGHH.',
+                '.HHKSSSSKHH.',
+                '..KSSMMSSK..',
+                '.KPPVVVVPPK.',
+                'KLPPVDDVPPPK',
+                'KPPPVVVVPPPK',
+                '.KPPDDDDPPK.',
+                '..KKTTTTKK..',
+                '...KT..TK...',
+                '...KB..BK...'
+            ];
+
+            // Sombra en el suelo
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
+            ctx.fillRect(px + 3, py + 20, 18, 4);
+
+            drawPixelSprite(sprite, palette, gx, gy, player.dir === -1, bobY);
+        }
+
+        // Pollo pixel art con cresta roja y pico naranja
+        function drawChicken(gx, gy) {
+            const px = gx * TILE_SIZE;
+            const py = gy * TILE_SIZE;
+            const bobY = Math.cos(animFrame * 0.18) > 0.3 ? -2 : 0;
+
+            const palette = {
+                'K': '#0f172a', // Contorno
+                'R': '#ef4444', // Cresta y barbilla roja
+                'W': '#ffffff', // Plumaje blanco
+                'C': '#e2e8f0', // Sombra del ala
+                'O': '#f97316', // Pico y patas naranjas
+                'M': '#c084fc'  // Ojo morado cuando está hipnotizado (Konami)
+            };
+
+            const sprite = [
+                '....KKK.....',
+                '...KRRRK....',
+                '...KWWWK....',
+                '..KWKWWKK...',
+                '.OOKWWWWWK..',
+                '..RKWWWWCWK.',
+                '...KWWWWCWK.',
+                '....KWWWWK..',
+                '.....KKKK...',
+                '.....O..O...',
+                '....OO..OO..',
+                '............'
+            ];
+
+            // Sombra en el suelo
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.32)';
+            ctx.fillRect(px + 5, py + 20, 14, 4);
+
+            // Aura morada si está hipnotizado con el Código Konami
+            if (konamiActive) {
+                ctx.fillStyle = 'rgba(192, 132, 252, 0.32)';
+                ctx.fillRect(px + 2, py + 2, TILE_SIZE - 4, TILE_SIZE - 4);
+            }
+
+            drawPixelSprite(sprite, palette, gx, gy, chicken.dir === 1, bobY);
+        }
+
+        function renderLoop() {
+            animFrame++;
+            ctx.clearRect(0, 0, CANVAS_RES, CANVAS_RES);
+
+            drawBoard();
+            drawObstacles();
+            drawChicken(chicken.x, chicken.y);
+            drawPlayerMan(player.x, player.y);
+
+            if (gameState === 'VICTORY') {
+                drawVictoryScene();
+            }
+
+            requestAnimationFrame(renderLoop);
+        }
+
+        // ==========================================
+        // ESCENA ILUSTRADA DE VICTORIA EN PIXEL ART
+        // ==========================================
+        function drawVictoryScene() {
+            const w = victoryCanvas.width;   // 160
+            const h = victoryCanvas.height;  // 104
+            vCtx.clearRect(0, 0, w, h);
+
+            // 1. Fondo acogedor de comedor (pared cálida con paneles de madera)
+            vCtx.fillStyle = '#fde68a';
+            vCtx.fillRect(0, 0, w, 68);
+
+            // Rayas sutiles de papel tapiz retro
+            vCtx.fillStyle = '#fcd34d';
+            for (let x = 0; x < w; x += 8) {
+                vCtx.fillRect(x, 0, 2, 68);
+            }
+
+            // Lambrín de madera en la parte baja de la pared
+            vCtx.fillStyle = '#78350f';
+            vCtx.fillRect(0, 50, w, 18);
+            vCtx.fillStyle = '#451a03';
+            vCtx.fillRect(0, 50, w, 2);
+            for (let x = 4; x < w; x += 12) {
+                vCtx.fillRect(x, 52, 2, 16);
+            }
+
+            // Ventana acogedora a la izquierda con cielo azul y cortinas
+            vCtx.fillStyle = '#451a03';
+            vCtx.fillRect(10, 8, 34, 34);
+            vCtx.fillStyle = '#38bdf8';
+            vCtx.fillRect(12, 10, 30, 30);
+            // Nube pixel art en la ventana
+            vCtx.fillStyle = '#ffffff';
+            vCtx.fillRect(16, 17, 10, 4);
+            vCtx.fillRect(18, 15, 6, 2);
+            // Marco cruzado de ventana
+            vCtx.fillStyle = '#78350f';
+            vCtx.fillRect(26, 10, 2, 30);
+            vCtx.fillRect(12, 24, 30, 2);
+            // Cortinas laterales moradas a juego
+            vCtx.fillStyle = '#6b21a8';
+            vCtx.fillRect(9, 8, 5, 35);
+            vCtx.fillRect(40, 8, 5, 35);
+
+            // Cuadro decorativo en la pared derecha
+            vCtx.fillStyle = '#78350f';
+            vCtx.fillRect(122, 12, 24, 20);
+            vCtx.fillStyle = '#fef3c7';
+            vCtx.fillRect(124, 14, 20, 16);
+            vCtx.fillStyle = '#16a34a';
+            vCtx.fillRect(124, 24, 20, 6);
+            vCtx.fillStyle = '#ef4444';
+            vCtx.fillRect(132, 18, 4, 4);
+
+            // 2. Respaldo de la silla detrás del personaje
+            vCtx.fillStyle = '#451a03';
+            vCtx.fillRect(50, 38, 52, 32);
+            vCtx.fillStyle = '#92400e';
+            vCtx.fillRect(52, 40, 48, 28);
+            vCtx.fillStyle = '#78350f';
+            vCtx.fillRect(56, 44, 40, 20);
+
+            // 3. Personaje Principal: Hombre robusto rapado, audífonos negros, bigote fino/perilla, sudadera morada y chaleco acolchado oscuro
+            const cx = 76; // Centro horizontal del personaje
+            const bob = Math.sin(animFrame * 0.1) > 0.3 ? 1 : 0;
+
+            // Torso ancho/robusto: Sudadera morada intensa de manga larga
+            vCtx.fillStyle = '#090d16';
+            vCtx.fillRect(cx - 25, 42 + bob, 50, 28); // Contorno robusto
+            vCtx.fillStyle = '#4c1d95';
+            vCtx.fillRect(cx - 23, 43 + bob, 46, 26); // Sudadera morada intensa
+
+            // Mangas moradas con volumen y pliegues
+            vCtx.fillStyle = '#5b21b6';
+            vCtx.fillRect(cx - 23, 45 + bob, 8, 21);
+            vCtx.fillRect(cx + 15, 45 + bob, 8, 21);
+            vCtx.fillStyle = '#3b0764';
+            vCtx.fillRect(cx - 22, 57 + bob, 7, 3);
+            vCtx.fillRect(cx + 15, 57 + bob, 7, 3);
+
+            // Cuello alto de la sudadera morada
+            vCtx.fillStyle = '#3b0764';
+            vCtx.fillRect(cx - 9, 41 + bob, 18, 6);
+            vCtx.fillStyle = '#5b21b6';
+            vCtx.fillRect(cx - 7, 42 + bob, 14, 4);
+
+            // Chaleco acolchado negro / gris oscuro encima
+            vCtx.fillStyle = '#090d16';
+            vCtx.fillRect(cx - 16, 42 + bob, 32, 27); // Contorno chaleco
+            vCtx.fillStyle = '#334155';
+            vCtx.fillRect(cx - 15, 43 + bob, 30, 25); // Cuerpo del chaleco acolchado
+
+            // Cuello alto acolchado del chaleco abierto dejando ver la sudadera morada
+            vCtx.fillStyle = '#1e293b';
+            vCtx.fillRect(cx - 15, 42 + bob, 7, 6);
+            vCtx.fillRect(cx + 8, 42 + bob, 7, 6);
+            vCtx.fillStyle = '#4c1d95';
+            vCtx.fillRect(cx - 8, 43 + bob, 16, 6);
+            vCtx.fillRect(cx - 5, 49 + bob, 10, 3);
+
+            // Costuras horizontales acolchadas (puffer vest)
+            vCtx.fillStyle = '#1e293b';
+            vCtx.fillRect(cx - 15, 50 + bob, 30, 1);
+            vCtx.fillRect(cx - 15, 56 + bob, 30, 1);
+            vCtx.fillRect(cx - 15, 62 + bob, 30, 1);
+            // Luz sutil en cada franja acolchada
+            vCtx.fillStyle = '#475569';
+            vCtx.fillRect(cx - 14, 47 + bob, 28, 1);
+            vCtx.fillRect(cx - 14, 52 + bob, 28, 1);
+            vCtx.fillRect(cx - 14, 58 + bob, 28, 1);
+
+            // Cierre central vertical del chaleco y bolsillo con solapa en el pecho izquierdo
+            vCtx.fillStyle = '#0f172a';
+            vCtx.fillRect(cx, 52 + bob, 1, 16);
+            vCtx.fillStyle = '#94a3b8';
+            vCtx.fillRect(cx, 53 + bob, 1, 2); // Tirador cierre
+            // Bolsillo delantero derecho (lado visual derecho)
+            vCtx.fillStyle = '#1e293b';
+            vCtx.fillRect(cx + 4, 51 + bob, 8, 7);
+            vCtx.fillStyle = '#475569';
+            vCtx.fillRect(cx + 4, 51 + bob, 8, 2);
+
+            // Cuello corto y robusto
+            vCtx.fillStyle = '#d49b72';
+            vCtx.fillRect(cx - 6, 39 + bob, 12, 4);
+
+            // Cabeza (Hombre joven-adulto de complexión llena, rapado/calvo con tono cálido)
+            vCtx.fillStyle = '#090d16'; // Contorno cabeza
+            vCtx.fillRect(cx - 12, 13 + bob, 24, 27);
+            vCtx.fillRect(cx - 10, 11 + bob, 20, 2);
+            vCtx.fillRect(cx - 10, 40 + bob, 20, 2);
+
+            // Relleno de piel cálida/trigueña clara
+            vCtx.fillStyle = '#ebb992';
+            vCtx.fillRect(cx - 11, 14 + bob, 22, 25);
+            vCtx.fillRect(cx - 9, 12 + bob, 18, 28);
+
+            // Ligera sombra de cabello muy rapado en la parte superior y sienes
+            vCtx.fillStyle = '#cfa07c';
+            vCtx.fillRect(cx - 9, 12 + bob, 18, 4);
+            vCtx.fillRect(cx - 11, 15 + bob, 22, 3);
+            vCtx.fillRect(cx - 11, 18 + bob, 2, 6);
+            vCtx.fillRect(cx + 9, 18 + bob, 2, 6);
+
+            // Brillo sutil en la cabeza rapada
+            vCtx.fillStyle = '#f7d1b2';
+            vCtx.fillRect(cx - 5, 14 + bob, 6, 3);
+
+            // Sombra lateral de mandíbula y papada sutil
+            vCtx.fillStyle = '#d49b72';
+            vCtx.fillRect(cx + 8, 22 + bob, 3, 16);
+            vCtx.fillRect(cx - 8, 39 + bob, 16, 2);
+
+            // Audífonos grandes de diadema negros sobre la cabeza y orejas
+            // Diadema superior
+            vCtx.fillStyle = '#090d16';
+            vCtx.fillRect(cx - 12, 9 + bob, 24, 3);
+            vCtx.fillRect(cx - 14, 11 + bob, 3, 10);
+            vCtx.fillRect(cx + 11, 11 + bob, 3, 10);
+            vCtx.fillStyle = '#334155'; // Reflejo metálico/plástico de la diadema
+            vCtx.fillRect(cx - 9, 10 + bob, 18, 1);
+            // Almohadillas grandes sobre las orejas
+            vCtx.fillStyle = '#090d16';
+            vCtx.fillRect(cx - 15, 20 + bob, 4, 11);
+            vCtx.fillRect(cx + 11, 20 + bob, 4, 11);
+            vCtx.fillStyle = '#1e293b';
+            vCtx.fillRect(cx - 14, 21 + bob, 2, 9);
+            vCtx.fillRect(cx + 12, 21 + bob, 2, 9);
+
+            // Cejas definidas oscuras
+            vCtx.fillStyle = '#18181b';
+            vCtx.fillRect(cx - 8, 22 + bob, 6, 2);
+            vCtx.fillRect(cx + 2, 22 + bob, 6, 2);
+
+            // Ojos expresivos y amables
+            vCtx.fillStyle = '#ffffff';
+            vCtx.fillRect(cx - 7, 25 + bob, 4, 3);
+            vCtx.fillRect(cx + 3, 25 + bob, 4, 3);
+            vCtx.fillStyle = '#090d16';
+            vCtx.fillRect(cx - 6, 25 + bob, 2, 3);
+            vCtx.fillRect(cx + 4, 25 + bob, 2, 3);
+
+            // Nariz
+            vCtx.fillStyle = '#c98a5b';
+            vCtx.fillRect(cx - 1, 26 + bob, 2, 4);
+            vCtx.fillRect(cx - 2, 29 + bob, 4, 1);
+
+            // Bigote fino recortado y perilla/barbilla sutil
+            vCtx.fillStyle = '#27272a';
+            vCtx.fillRect(cx - 5, 32 + bob, 4, 1);
+            vCtx.fillRect(cx + 1, 32 + bob, 4, 1);
+            vCtx.fillRect(cx - 6, 33 + bob, 1, 1);
+            vCtx.fillRect(cx + 5, 33 + bob, 1, 1);
+
+            // Sonrisa amable y satisfecha
+            vCtx.fillStyle = '#090d16';
+            vCtx.fillRect(cx - 4, 34 + bob, 8, 1);
+            vCtx.fillRect(cx - 4, 35 + bob, 8, 2);
+            vCtx.fillStyle = '#ffffff';
+            vCtx.fillRect(cx - 3, 35 + bob, 6, 1);
+
+            // Pequeña perilla bajo el labio inferior
+            vCtx.fillStyle = '#27272a';
+            vCtx.fillRect(cx - 2, 38 + bob, 4, 2);
+
+            // 4. Mesa de madera en primer plano
+            vCtx.fillStyle = '#291509';
+            vCtx.fillRect(0, 67, w, 3); // Borde superior oscuro de mesa
+            vCtx.fillStyle = '#9a5b25';
+            vCtx.fillRect(0, 70, w, 34); // Superficie de la mesa
+            // Vetas de madera pixel art
+            vCtx.fillStyle = '#7c4418';
+            vCtx.fillRect(8, 76, 36, 2);
+            vCtx.fillRect(116, 74, 34, 2);
+            vCtx.fillRect(14, 92, 45, 2);
+            vCtx.fillRect(108, 94, 42, 2);
+            vCtx.fillStyle = '#b46f32';
+            vCtx.fillRect(0, 70, w, 2);
+
+            // Antebrazos morados y manos apoyadas sobre el borde de la mesa (pose de la foto)
+            // Brazo izquierdo
+            vCtx.fillStyle = '#090d16';
+            vCtx.fillRect(cx - 26, 61, 13, 8);
+            vCtx.fillStyle = '#4c1d95';
+            vCtx.fillRect(cx - 25, 62, 11, 6);
+            vCtx.fillStyle = '#ebb992';
+            vCtx.fillRect(cx - 15, 64, 6, 5); // Mano izquierda
+
+            // Brazo derecho
+            vCtx.fillStyle = '#090d16';
+            vCtx.fillRect(cx + 13, 61, 13, 8);
+            vCtx.fillStyle = '#4c1d95';
+            vCtx.fillRect(cx + 14, 62, 11, 6);
+            vCtx.fillStyle = '#ebb992';
+            vCtx.fillRect(cx + 9, 64, 6, 5); // Mano derecha
+
+            // 5. Plato grande con el pollo asado dorado sobre la mesa
+            const px = 80;
+            const py = 86;
+
+            // Sombra del plato
+            vCtx.fillStyle = '#5c3110';
+            vCtx.fillRect(px - 24, py + 4, 48, 8);
+
+            // Plato blanco con borde azul claro retro
+            vCtx.fillStyle = '#cbd5e1';
+            vCtx.fillRect(px - 23, py + 1, 46, 9);
+            vCtx.fillStyle = '#ffffff';
+            vCtx.fillRect(px - 21, py, 42, 8);
+            vCtx.fillStyle = '#93c5fd';
+            vCtx.fillRect(px - 18, py + 2, 36, 4);
+
+            // Pollo asado dorado y jugoso encima del plato
+            vCtx.fillStyle = '#451a03'; // Contorno del pollo
+            vCtx.fillRect(px - 13, py - 10, 26, 12);
+            vCtx.fillRect(px - 10, py - 12, 20, 2);
+
+            // Cuerpo dorado del pollo asado
+            vCtx.fillStyle = '#d97706';
+            vCtx.fillRect(px - 12, py - 9, 24, 10);
+            vCtx.fillRect(px - 9, py - 11, 18, 2);
+
+            // Brillo tostado superior
+            vCtx.fillStyle = '#fbbf24';
+            vCtx.fillRect(px - 8, py - 10, 14, 3);
+            vCtx.fillRect(px - 10, py - 7, 16, 2);
+
+            // Muslito con huesito blanco
+            vCtx.fillStyle = '#b45309';
+            vCtx.fillRect(px + 6, py - 6, 8, 5);
+            vCtx.fillStyle = '#ffffff';
+            vCtx.fillRect(px + 13, py - 5, 4, 3);
+            vCtx.fillRect(px + 16, py - 6, 2, 5);
+
+            // Guarnición verde (lechuga/perejil) en el plato
+            vCtx.fillStyle = '#22c55e';
+            vCtx.fillRect(px - 16, py - 1, 5, 3);
+            vCtx.fillRect(px + 12, py, 5, 3);
+
+            // 6. Cubiertos y vaso a los lados del plato
+            // Tenedor a la izquierda
+            vCtx.fillStyle = '#e2e8f0';
+            vCtx.fillRect(px - 31, py - 2, 2, 11);
+            vCtx.fillRect(px - 33, py - 5, 6, 3);
+            vCtx.fillRect(px - 33, py - 8, 1, 3);
+            vCtx.fillRect(px - 31, py - 8, 1, 3);
+            vCtx.fillRect(px - 28, py - 8, 1, 3);
+
+            // Cuchillo a la derecha
+            vCtx.fillStyle = '#94a3b8';
+            vCtx.fillRect(px + 29, py + 2, 2, 7);
+            vCtx.fillStyle = '#f8fafc';
+            vCtx.fillRect(px + 29, py - 7, 3, 9);
+
+            // Vaso con bebida refrescante a la derecha
+            vCtx.fillStyle = '#bae6fd';
+            vCtx.fillRect(px + 42, py - 10, 10, 16);
+            vCtx.fillStyle = '#f97316'; // Jugo naranja
+            vCtx.fillRect(px + 43, py - 5, 8, 10);
+            vCtx.fillStyle = '#ffffff';
+            vCtx.fillRect(px + 44, py - 9, 2, 13); // Reflejo del vidrio
+
+            // 7. Animación sutil de vapor caliente subiendo del pollo
+            const steamOffset = Math.floor(animFrame / 10) % 4;
+            vCtx.fillStyle = 'rgba(255, 255, 255, 0.75)';
+            // Columna de vapor 1
+            vCtx.fillRect(px - 6 + ((steamOffset % 2) === 0 ? 1 : 0), py - 16 - steamOffset, 2, 3);
+            vCtx.fillRect(px - 7 + ((steamOffset % 2) === 1 ? 1 : 0), py - 21 - steamOffset, 2, 3);
+            // Columna de vapor 2
+            vCtx.fillRect(px + 3 + ((steamOffset % 2) === 1 ? 1 : 0), py - 15 - ((steamOffset + 2) % 4), 2, 3);
+            vCtx.fillRect(px + 4 + ((steamOffset % 2) === 0 ? 1 : 0), py - 20 - ((steamOffset + 2) % 4), 2, 3);
+        }
+
+        // ==========================================
+        // CONTROLES DE TECLADO Y CRUCETA TÁCTIL
+        // ==========================================
+        function triggerButtonVisual(btnId) {
+            const btn = document.getElementById(btnId);
+            if (!btn) return;
+            btn.classList.add('pressed');
+            setTimeout(() => btn.classList.remove('pressed'), 110);
+        }
+
+        window.addEventListener('keydown', (e) => {
+            const key = e.key;
+            if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' '].includes(key)) {
+                e.preventDefault();
+            }
+
+            if (gameState === 'START' || gameState === 'VICTORY') {
+                if (key === 'Enter' || key === ' ') {
+                    startGame();
+                }
+                return;
+            }
+
+            if (key === 'ArrowUp' || key === 'w' || key === 'W') {
+                triggerButtonVisual('btn-up');
+                handlePlayerMove('UP');
+            } else if (key === 'ArrowDown' || key === 's' || key === 'S') {
+                triggerButtonVisual('btn-down');
+                handlePlayerMove('DOWN');
+            } else if (key === 'ArrowLeft' || key === 'a' || key === 'A') {
+                triggerButtonVisual('btn-left');
+                handlePlayerMove('LEFT');
+            } else if (key === 'ArrowRight' || key === 'd' || key === 'D') {
+                triggerButtonVisual('btn-right');
+                handlePlayerMove('RIGHT');
+            }
+        });
+
+        function bindDpadButton(id, direction) {
+            const btn = document.getElementById(id);
+            const onActivate = (e) => {
+                e.preventDefault();
+                triggerButtonVisual(id);
+                handlePlayerMove(direction);
+            };
+            btn.addEventListener('touchstart', onActivate, { passive: false });
+            btn.addEventListener('mousedown', onActivate);
+        }
+
+        bindDpadButton('btn-up', 'UP');
+        bindDpadButton('btn-down', 'DOWN');
+        bindDpadButton('btn-left', 'LEFT');
+        bindDpadButton('btn-right', 'RIGHT');
+
+        // Iniciar animación en carga de ventana
+        window.onload = function () {
+            generateLevel();
+            renderLoop();
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pago con tarjeta | RULE 34 Store Phones</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            padding: 2rem 1rem;
+            background: #f4f6fb;
+            color: #111827;
+            font-family: "Segoe UI", system-ui, sans-serif;
+        }
+        main {
+            width: min(620px, 100%);
+            margin: 0 auto;
+            padding: 2rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 16px;
+            background: #fff;
+            box-shadow: 0 12px 28px rgba(17, 24, 39, 0.08);
+        }
+        h1 { margin-top: 0; }
+        .volver { color: #1d4ed8; font-weight: 600; }
+        .campo { display: grid; gap: 0.4rem; margin: 1rem 0; font-weight: 600; }
+        input, textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font: inherit;
+        }
+        input:disabled { background: #f3f4f6; color: #6b7280; }
+        textarea { min-height: 90px; resize: vertical; }
+        button {
+            width: 100%;
+            padding: 0.9rem;
+            border: 0;
+            border-radius: 9px;
+            background: #2563eb;
+            color: #fff;
+            font: inherit;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        button:hover { background: #1d4ed8; }
+        .aviso, .mensaje {
+            padding: 0.9rem;
+            border-radius: 8px;
+            background: #eff6ff;
+            color: #1e3a8a;
+        }
+        .error { background: #fef2f2; color: #991b1b; }
+        .confirmacion { background: #ecfdf5; color: #065f46; }
+        [hidden] { display: none !important; }
+        @media (max-width: 520px) { main { padding: 1.25rem; } }
+    </style>
+</head>
+<body>
+    <main>
+        <a class="volver" href="carrito.html">← Volver al carrito</a>
+        <h1>Pago con tarjeta</h1>
+        <p>Total: <strong id="total-pago">Cargando…</strong></p>
+        <p id="error-pago" class="mensaje error" role="alert" aria-live="polite" hidden></p>
+        <p id="confirmacion-pago" class="mensaje confirmacion" role="status" hidden></p>
+
+        <section id="datos-pago" role="form" aria-labelledby="titulo-datos">
+            <h2 id="titulo-datos">Datos de demostración</h2>
+            
+
+            <label class="campo">
+                Nombre
+                <input id="nombre" autocomplete="given-name" maxlength="80" required>
+            </label>
+            <label class="campo">
+                Apellido
+                <input id="apellido" autocomplete="family-name" maxlength="80" required>
+            </label>
+            <label class="campo">
+                Edad
+                <input id="edad" type="number" min="1" max="120" required>
+            </label>
+            
+            <label class="campo">
+                Dirección
+                <textarea id="direccion" autocomplete="street-address" maxlength="200" required></textarea>
+            </label>
+            <button id="simular-pago" type="button">Simular pago</button>
+        </section>
+    </main>
+    <script src="inventario.js"></script>
+    <script src="pagot.js"></script>
+</body>
+</html>

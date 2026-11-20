@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+      <link rel="stylesheet" href="estilos.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RULE 34 | Tienda de Celulares</title>
+</head>
+<body>
+
+    <!-- ENCABEZADO Y NAVEGACIÓN -->
+    <header class="header">
+        <div class="logo">
+            <h1>RULE 34 <span>Store phones</span></h1>
+        </div>
+
+        <nav class="navbar">
+            <ul>
+                <li><a href="#inicio">Inicio</a></li>
+                <li><a href="#catalogo">Catálogo</a></li>
+                <li><a href="#ofertas">Ofertas</a></li>
+                <li><a href="#quienes-somos">Quiénes Somos</a></li>
+                <li><a href="#contacto">Contacto</a></li>
+            </ul>
+        </nav>
+
+        <div class="carrito-icono">
+            <button id="btn-carrito">
+                🛒 Carrito (<span id="contador-carrito">0</span>)
+            </button>
+        </div>
+
+        <a id="btn-easter-egg" href="PIAJUEGO.html">Easter egg</a>
+    </header>
+
+    <!-- BANNER PRINCIPAL (HERO) -->
+    <section id="inicio" class="hero">
+        <div class="hero-contenido">
+            <h2>Los mejores smartphones al mejor precio</h2>
+            <p>Encuentra los últimos lanzamientos de Apple, Samsung, Xiaomi y Motorola con garantía oficial.</p>
+            <a href="#catalogo" class="btn-principal">Ver Catálogo</a>
+        </div>
+    </section>
+
+    <!-- SECCIÓN QUIÉNES SOMOS -->
+    <section id="quienes-somos" class="seccion-quienes-somos">
+        <div class="quienes-somos-contenedor">
+            <div class="quienes-somos-texto">
+                <h2>¿Quiénes Somos?</h2>
+                <p>Somos estudiantes de tercer semestre de la <strong>Preparatoria Álvaro Obregón</strong> cursando la carrera técnica en <strong>Programación Web</strong>.</p>
+                <p>Integrantes del <strong>equipo Rule 34</strong>, un grupo apasionado por aprender, enfocados en aplicar nuestros conocimientos para crear experiencias funcionales.</p>
+                <p>Nuestro objetivo principal es <strong>crecer nuestro conocimiento</strong> práctico y técnico.</p>
+            </div>
+            
+        </div>
+    </section>
+
+    <!-- SECCIÓN DE OFERTAS -->
+    <section id="ofertas" class="ofertas-seccion">
+        <div class="ofertas-contenedor">
+            <div class="ofertas-header">
+                <span class="badge-oferta">🔥 OFERTAS DE LA SEMANA</span>
+                <h2>Descuentos Especiales</h2>
+                <p>Aprovecha precios rebajados por tiempo limitado en modelos seleccionados.</p>
+            </div>
+
+            <div id="lista-ofertas" class="productos-grid ofertas-grid"></div>
+        </div>
+    </section>
+
+    <!-- FILTROS Y BUSCADOR -->
+    <section class="filtros-seccion">
+        <input type="text" id="buscador" placeholder="Buscar celular por modelo...">
+        
+        <select id="filtro-marca">
+            <option value="todos">Todas las marcas</option>
+            <option value="apple">Apple</option>
+            <option value="samsung">Samsung</option>
+            <option value="xiaomi">Xiaomi</option>
+            <option value="motorola">Motorola</option>
+        </select>
+
+        <select id="ordenar-precio">
+            <option value="defecto">Ordenar por: Destacados</option>
+            <option value="menor-mayor">Precio: Menor a Mayor</option>
+            <option value="mayor-menor">Precio: Mayor a Menor</option>
+        </select>
+    </section>
+
+    <!-- CATÁLOGO DE CELULARES (50 PRODUCTOS) -->
+    <main id="catalogo" class="catalogo-contenedor">
+        <h2>Catálogo de Celulares</h2>
+
+        <div id="lista-productos" class="productos-grid"></div>
+        <p id="sin-resultados" class="sin-resultados oculto">No se encontraron celulares que coincidan con tu búsqueda.</p>
+    </main>
+
+    <!-- MODAL / PANEL DEL CARRITO DE COMPRAS -->
+    <aside id="modal-carrito" class="modal-carrito oculto">
+        <div class="carrito-contenido">
+            <div class="carrito-header">
+                <h3>Tu Carrito</h3>
+                <button id="cerrar-carrito">✖</button>
+            </div>
+            
+            <ul id="items-carrito"></ul>
+            
+            <div class="carrito-footer">
+                <p>Total: $<span id="total-carrito">0</span> MXN</p>
+                <button id="btn-vaciar">Vaciar Carrito</button>
+                <button id="btn-comprar" class="btn-principal">Finalizar Compra</button>
+            </div>
+        </div>
+    </aside>
+
+    <!-- PIE DE PÁGINA Y CONTACTO -->
+    <footer id="contacto" class="footer">
+        <h3>Contacto</h3>
+        <p>&copy; 2026 RULE 34 - Todos los derechos reservados.</p>
+        <p>Email: ventas@rule34.com | Envío gratis a todo México</p>
+        <p>Teléfono de atención y WhatsApp: <a href="tel:8127639489" style="color: #fff; text-decoration: underline;">81 2763 9489</a> | 
+           <a href="https://wa.me/5218127639489?text=Hola,%20me%20interesa%20información%20sobre%20los%20celulares" target="_blank" style="color: #25d366; font-weight: bold;">💬 Mandar WhatsApp</a>
+        </p>
+    </footer>
+
+    <script src="inventario.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

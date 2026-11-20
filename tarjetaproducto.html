@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalles del producto | RULE 34 Store Phones</title>
+    <style>
+        :root {
+            color-scheme: light;
+            font-family: "Segoe UI", system-ui, sans-serif;
+            color: #111827;
+            background: #f4f6fb;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+        }
+
+        .barra-superior {
+            background: #0b0f19;
+            padding: 1rem 5%;
+        }
+
+        .volver {
+            color: #fff;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .volver:hover {
+            color: #f59e0b;
+        }
+
+        .detalle {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+            gap: 2rem;
+            align-items: center;
+            width: min(1100px, 90%);
+            margin: 3rem auto;
+            padding: 2rem;
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 18px;
+            box-shadow: 0 12px 28px rgba(17, 24, 39, 0.08);
+        }
+
+        .detalle[hidden],
+        .error[hidden] {
+            display: none;
+        }
+
+        .imagen-contenedor {
+            min-height: 320px;
+            display: grid;
+            place-items: center;
+            padding: 1rem;
+            background: #f9fafb;
+            border-radius: 14px;
+        }
+
+        .imagen-contenedor img {
+            display: block;
+            width: 100%;
+            max-height: 440px;
+            object-fit: contain;
+        }
+
+        .tipo-producto {
+            color: #b45309;
+            font-size: 0.85rem;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        h1 {
+            margin: 0.5rem 0 1.25rem;
+            font-size: clamp(1.7rem, 4vw, 2.4rem);
+            line-height: 1.2;
+        }
+
+        .detalles-lista {
+            display: grid;
+            grid-template-columns: max-content 1fr;
+            gap: 0.8rem 1rem;
+            margin: 0 0 1.5rem;
+        }
+
+        .detalles-lista dt {
+            color: #6b7280;
+            font-weight: 600;
+        }
+
+        .detalles-lista dd {
+            margin: 0;
+        }
+
+        .versiones {
+            display: grid;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .versiones select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            background: #fff;
+            color: #111827;
+            font: inherit;
+        }
+
+        .precio-anterior {
+            margin: 0;
+            color: #6b7280;
+            text-decoration: line-through;
+        }
+
+        .descuento {
+            display: inline-block;
+            margin-left: 0.5rem;
+            padding: 0.2rem 0.55rem;
+            border-radius: 6px;
+            background: #fee2e2;
+            color: #b91c1c;
+            font-size: 0.8rem;
+            font-weight: 800;
+        }
+
+        .precio {
+            margin: 0.25rem 0 0;
+            color: #2563eb;
+            font-size: 2rem;
+            font-weight: 800;
+        }
+
+        .comprar-oferta {
+            width: 100%;
+            margin-top: 1.25rem;
+            padding: 1rem 1.25rem;
+            border: 0;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #dc2626, #f97316);
+            color: #fff;
+            font: inherit;
+            font-size: 1.05rem;
+            font-weight: 800;
+            cursor: pointer;
+            box-shadow: 0 5px 14px rgba(220, 38, 38, 0.25);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .comprar-oferta:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 18px rgba(220, 38, 38, 0.32);
+        }
+
+        .comprar-oferta:focus-visible {
+            outline: 3px solid #111827;
+            outline-offset: 3px;
+        }
+
+        .comprar-oferta:disabled {
+            background: #9ca3af;
+            box-shadow: none;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .comprar-oferta[hidden] {
+            display: none;
+        }
+
+        .error {
+            width: min(700px, 90%);
+            margin: 3rem auto;
+            padding: 1rem;
+            border: 1px solid #fecaca;
+            border-radius: 10px;
+            background: #fef2f2;
+            color: #991b1b;
+        }
+
+        @media (max-width: 700px) {
+            .detalle {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+                margin: 1.5rem auto;
+                padding: 1.25rem;
+            }
+
+            .imagen-contenedor {
+                min-height: 240px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="barra-superior">
+        <a class="volver" href="PIA.html">← Volver a la tienda</a>
+    </header>
+
+    <p id="error" class="error" role="alert" hidden></p>
+
+    <main id="detalle" class="detalle" hidden>
+        <div class="imagen-contenedor">
+            <img id="imagen-producto" alt="">
+        </div>
+
+        <section>
+            <p id="tipo-producto" class="tipo-producto"></p>
+            <h1 id="nombre-producto"></h1>
+
+            <dl class="detalles-lista">
+                <dt>Marca</dt>
+                <dd id="marca-producto"></dd>
+                <dt>Especificaciones</dt>
+                <dd id="especificaciones-producto"></dd>
+                <dt>RAM</dt>
+                <dd id="ram-producto"></dd>
+                <dt>Cámaras</dt>
+                <dd id="camaras-producto"></dd>
+                <dt>Disponibles</dt>
+                <dd id="disponibles-producto" aria-live="polite"></dd>
+            </dl>
+
+            <div id="versiones-contenedor" class="versiones" hidden>
+                <label for="versiones">Versiones / colores</label>
+                <select id="versiones"></select>
+            </div>
+
+            <p id="precio-anterior" class="precio-anterior" hidden></p>
+            <span id="descuento" class="descuento" hidden></span>
+            <p id="precio-producto" class="precio"></p>
+            <button id="comprar-oferta" class="comprar-oferta" type="button" hidden>
+                ¡En oferta, cómpralo ya o se va!
+            </button>
+        </section>
+    </main>
+
+    <script src="inventario.js"></script>
+    <script src="tarjetaproducto.js"></script>
+</body>
+</html>
